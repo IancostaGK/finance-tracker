@@ -1,0 +1,32 @@
+{
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": [
+    "source.fixAll.eslint",
+    "source.organizeImports"
+  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#008000",
+    "activityBar.background": "#008000",
+    "sash.hoverBorder": "#008000",
+    "statusBar.background": "#004d00",
+    "statusBarItem.hoverBackground": "#008000",
+    "statusBarItem.remoteBackground": "#004d00",
+    "titleBar.activeBackground": "#004d00",
+    "titleBar.inactiveBackground": "#004d0099",
+    "activityBarBadge.background": "#9f9fff",
+    "activityBarBadge.foreground": "#15202b",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "commandCenter.border": "#e7e7e799",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#004d00"
+}
