@@ -44,6 +44,13 @@ const viewSelected = ref(options[0]);
             :loading="false"
         />
     </section>
+
+    <section>
+        <Transaction />
+        <Transaction />
+        <Transaction />
+        <Transaction />
+    </section>
 </template>
 
 <style scoped></style>
