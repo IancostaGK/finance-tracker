@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const options = ['Yearly', 'Monthly', 'Daily'];
-const viewSelected = ref(options[0]);
+const viewSelected = ref(options[1]);
 const isOpen = ref(false);
+
+const { current, previous } = useSelectedTimePeriod(viewSelected);
 
 const {
     pending,
@@ -13,8 +15,17 @@ const {
         expenseTotal,
         grouped: { byDate },
     },
-} = useFetchTransactions();
+} = useFetchTransactions(current);
 
+const {
+    refresh: refreshPrevious,
+    transactions: {
+        incomeTotal: prevIncomeTotal,
+        expenseTotal: prevExpenseTotal,
+    },
+} = useFetchTransactions(previous);
+
+await refreshPrevious();
 await refresh();
 </script>
 
@@ -35,14 +46,14 @@ await refresh();
                 color="green"
                 title="Income"
                 :amount="incomeTotal"
-                :last-amount="4100"
+                :last-amount="prevIncomeTotal"
                 :loading="pending"
             />
             <Trend
                 color="red"
                 title="Expense"
                 :amount="expenseTotal"
-                :last-amount="3800"
+                :last-amount="prevExpenseTotal"
                 :loading="pending"
             />
             <Trend

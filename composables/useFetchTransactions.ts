@@ -1,6 +1,6 @@
 import type { TransactionRow } from '~/types/Transaction';
 
-export const useFetchTransactions = () => {
+export const useFetchTransactions = (period: Ref<{ from: Date; to: Date }>) => {
     const supabase = useSupabaseClient();
     const transactions = ref<TransactionRow[]>([]);
     const pending = ref(false);
@@ -25,16 +25,21 @@ export const useFetchTransactions = () => {
     const fetchTransactions = async (): Promise<TransactionRow[]> => {
         pending.value = true;
         try {
-            const { data } = await useAsyncData('transactions', async () => {
-                const { data, error } = await supabase
-                    .from('transactions')
-                    .select()
-                    .order('created_at', { ascending: false });
+            const { data } = await useAsyncData(
+                `transactions-${period.value.from.toDateString()}-${period.value.to.toDateString()}`,
+                async () => {
+                    const { data, error } = await supabase
+                        .from('transactions')
+                        .select()
+                        .gte('created_at', period.value.from.toISOString())
+                        .lte('created_at', period.value.to.toISOString())
+                        .order('created_at', { ascending: false });
 
-                if (error) return [];
+                    if (error) return [];
 
-                return data;
-            });
+                    return data;
+                }
+            );
 
             return data.value || [];
         } finally {
@@ -60,6 +65,8 @@ export const useFetchTransactions = () => {
 
         return grouped;
     });
+
+    watch(period, async () => await refresh(), { deep: true });
 
     return {
         transactions: {

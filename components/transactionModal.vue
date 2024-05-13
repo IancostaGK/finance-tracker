@@ -151,7 +151,7 @@ watch(isOpen, (value) => {
                 </UFormGroup>
 
                 <UFormGroup
-                    :required="true"
+                    required
                     label="Category"
                     name="category"
                     class="mb-4"
