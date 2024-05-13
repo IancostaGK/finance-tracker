@@ -141,12 +141,6 @@ await refreshTransactions();
             <USkeleton class="h-8 w-full mb-2" v-for="i in 4" :key="i" />
         </section>
 
-        <UModal v-model="isOpen">
-            <UCard>
-                <template #header> Add Transaction </template>
-
-                <div>Hello!</div>
-            </UCard>
-        </UModal>
+        <TransactionModal v-model="isOpen" />
     </div>
 </template>
