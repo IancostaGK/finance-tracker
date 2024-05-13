@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { UForm } from '#build/components';
+import { z } from 'zod';
+import { categories, types } from '~/constants';
+
 const emit = defineEmits(['update:modelValue']);
 const isOpen = defineModel<boolean>({ required: true });
 
-const categories = ['Food', 'Housing', 'Car', 'Entertainment'];
-const types = ['Income', 'Expense', 'Saving', 'Investment'];
-
+const form = ref<InstanceType<typeof UForm> | null>(null);
 const state = ref({
     type: undefined,
     amount: 0,
@@ -12,6 +14,44 @@ const state = ref({
     description: undefined,
     category: undefined,
 });
+
+const defaultSchema = z.object({
+    amount: z.number().positive('Amount must be positive'),
+    created_at: z.string(),
+    description: z.string().optional(),
+});
+
+const incomeSchema = z.object({
+    type: z.literal('Income'),
+});
+
+const expenseSchema = z.object({
+    type: z.literal('Expense'),
+    category: z.enum(categories as any),
+});
+
+const investmentSchema = z.object({
+    type: z.literal('Investment'),
+});
+
+const savingSchema = z.object({
+    type: z.literal('Saving'),
+});
+
+const schema = z.intersection(
+    z.discriminatedUnion('type', [
+        incomeSchema,
+        expenseSchema,
+        investmentSchema,
+        savingSchema,
+    ]),
+    defaultSchema
+);
+
+const save = async () => {
+    if (form.value?.validate(state.value)) {
+    }
+};
 </script>
 
 <template>
@@ -19,7 +59,7 @@ const state = ref({
         <UCard>
             <template #header> Add Transaction </template>
 
-            <UForm :state="state">
+            <UForm :state :schema ref="form" @submit.prevent="save">
                 <UFormGroup
                     required
                     label="Transaction Type"
@@ -67,10 +107,11 @@ const state = ref({
                 </UFormGroup>
 
                 <UFormGroup
-                    required
+                    :required="true"
                     label="Category"
                     name="category"
                     class="mb-4"
+                    v-if="state.type === 'Expense'"
                 >
                     <USelect
                         placeholder="Category"
