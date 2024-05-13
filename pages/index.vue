@@ -16,7 +16,8 @@ const fetchTransactions = async (): Promise<TransactionRow[]> => {
         const { data } = await useAsyncData('transactions', async () => {
             const { data, error } = await supabase
                 .from('transactions')
-                .select();
+                .select()
+                .order('created_at', { ascending: false });
             if (error) return [];
             return data;
         });
