@@ -1,6 +1,35 @@
 <script setup lang="ts">
+import type { TransactionRow } from '~/types/Transaction';
+
 const options = ['Yearly', 'Monthly', 'Daily'];
 const viewSelected = ref(options[0]);
+
+const supabase = useSupabaseClient();
+
+const { data: transactions, pending } = await useAsyncData<TransactionRow[]>(
+    'transactons',
+    async () => {
+        const { data, error } = await supabase.from('transactions').select();
+
+        return error ? [] : data;
+    }
+);
+
+const transactionsGroupedByDate = computed(() => {
+    if (!transactions.value) return {};
+
+    let grouped: Record<string, TransactionRow[]> = {};
+
+    for (const transaction of transactions.value) {
+        const date = new Date(transaction.created_at)
+            .toISOString()
+            .split('T')[0];
+
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(transaction);
+    }
+    return grouped;
+});
 </script>
 
 <template>
@@ -46,10 +75,21 @@ const viewSelected = ref(options[0]);
     </section>
 
     <section>
-        <Transaction />
-        <Transaction />
-        <Transaction />
-        <Transaction />
+        <div
+            v-for="(transactionsOnDay, date) in transactionsGroupedByDate"
+            :key="date"
+            class="mb-10"
+        >
+            <DailyTransactionsSummary
+                :date="date"
+                :transactions="transactionsOnDay"
+            />
+            <Transaction
+                v-for="transaction in transactionsOnDay"
+                :key="transaction.id"
+                :transaction="transaction"
+            />
+        </div>
     </section>
 </template>
 
