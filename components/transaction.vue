@@ -50,7 +50,7 @@ const items = [
 ];
 
 const icon = computed(() =>
-    props.transaction.type === 'income'
+    props.transaction.type === 'Income'
         ? { name: 'i-heroicons-arrow-up-right', class: 'text-green-600' }
         : { name: 'i-heroicons-arrow-down-left', class: 'text-red-600' }
 );

@@ -28,10 +28,10 @@ const fetchTransactions = async (): Promise<TransactionRow[]> => {
 };
 
 const income = computed(() =>
-    transactions.value.filter((t) => t.type === 'income')
+    transactions.value.filter((t) => t.type === 'Income')
 );
 const expense = computed(() =>
-    transactions.value.filter((t) => t.type === 'expense')
+    transactions.value.filter((t) => t.type === 'Expense')
 );
 const incomeCount = computed(() => income.value.length);
 const expenseCount = computed(() => expense.value.length);

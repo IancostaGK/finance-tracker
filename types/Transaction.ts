@@ -3,6 +3,6 @@ export interface TransactionRow {
     amount: number;
     description: string;
     category: string;
-    type: 'income' | 'expense';
+    type: 'Income' | 'Expense' | 'Saving' | 'Investment';
     created_at: string;
 }

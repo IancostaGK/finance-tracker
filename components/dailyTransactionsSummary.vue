@@ -9,7 +9,7 @@ const props = defineProps<{
 const sum = computed(() => {
     let sum = 0;
     for (const transaction of props.transactions) {
-        transaction.type === 'income'
+        transaction.type === 'Income'
             ? (sum += transaction.amount)
             : (sum -= transaction.amount);
     }

@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import type { UForm } from '#build/components';
+import type { Form } from '#ui/types';
 import { z } from 'zod';
 import { categories, types } from '~/constants';
 
 const emit = defineEmits(['update:modelValue']);
 const isOpen = defineModel<boolean>({ required: true });
 
-const form = ref<InstanceType<typeof UForm> | null>(null);
-const state = ref({
+const form = ref<Form<typeof state.value> | null>(null);
+
+const initialState = {
     type: undefined,
     amount: 0,
     created_at: undefined,
     description: undefined,
     category: undefined,
+};
+
+const state = ref({
+    ...initialState,
 });
 
 const defaultSchema = z.object({
@@ -48,10 +54,18 @@ const schema = z.intersection(
     defaultSchema
 );
 
-const save = async () => {
-    if (form.value?.validate(state.value)) {
-    }
+const resetForm = () => {
+    Object.assign(state.value, initialState);
+    form.value?.clear();
 };
+
+const save = async () => {
+    if (form.value?.errors.length) return;
+};
+
+watch(isOpen, (value) => {
+    if (!value) resetForm();
+});
 </script>
 
 <template>
