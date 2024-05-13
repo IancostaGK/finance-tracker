@@ -1,61 +1,21 @@
 <script setup lang="ts">
-import type { TransactionRow } from '~/types/Transaction';
-
 const options = ['Yearly', 'Monthly', 'Daily'];
-
-const supabase = useSupabaseClient();
-
-const transactions = ref<TransactionRow[]>([]);
 const viewSelected = ref(options[0]);
-const isLoading = ref(false);
 const isOpen = ref(false);
 
-const fetchTransactions = async (): Promise<TransactionRow[]> => {
-    isLoading.value = true;
-    try {
-        const { data } = await useAsyncData('transactions', async () => {
-            const { data, error } = await supabase
-                .from('transactions')
-                .select()
-                .order('created_at', { ascending: false });
-            if (error) return [];
-            return data;
-        });
+const {
+    pending,
+    refresh,
+    transactions: {
+        incomeCount,
+        expenseCount,
+        incomeTotal,
+        expenseTotal,
+        grouped: { byDate },
+    },
+} = useFetchTransactions();
 
-        return data.value || [];
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-const income = computed(() =>
-    transactions.value.filter((t) => t.type === 'Income')
-);
-const expense = computed(() =>
-    transactions.value.filter((t) => t.type === 'Expense')
-);
-const incomeCount = computed(() => income.value.length);
-const expenseCount = computed(() => expense.value.length);
-
-const transactionsGroupedByDate = computed(() => {
-    if (!transactions.value) return {};
-
-    let grouped: Record<string, TransactionRow[]> = {};
-
-    for (const transaction of transactions.value) {
-        const date = new Date(transaction.created_at)
-            .toISOString()
-            .split('T')[0];
-
-        if (!grouped[date]) grouped[date] = [];
-        grouped[date].push(transaction);
-    }
-    return grouped;
-});
-
-const refreshTransactions = async () =>
-    (transactions.value = await fetchTransactions());
-await refreshTransactions();
+await refresh();
 </script>
 
 <template>
@@ -74,30 +34,30 @@ await refreshTransactions();
             <Trend
                 color="green"
                 title="Income"
-                :amount="income.length"
+                :amount="incomeTotal"
                 :last-amount="4100"
-                :loading="isLoading"
+                :loading="pending"
             />
             <Trend
                 color="red"
                 title="Expense"
-                :amount="expense.length"
+                :amount="expenseTotal"
                 :last-amount="3800"
-                :loading="isLoading"
+                :loading="pending"
             />
             <Trend
                 color="green"
                 title="Investments"
                 :amount="4000"
                 :last-amount="3000"
-                :loading="isLoading"
+                :loading="pending"
             />
             <Trend
                 color="red"
                 title="Saving"
                 :amount="4000"
                 :last-amount="4100"
-                :loading="isLoading"
+                :loading="pending"
             />
         </section>
 
@@ -120,9 +80,9 @@ await refreshTransactions();
             </div>
         </section>
 
-        <section v-if="!isLoading">
+        <section v-if="!pending">
             <div
-                v-for="(transactionsOnDay, date) in transactionsGroupedByDate"
+                v-for="(transactionsOnDay, date) in byDate"
                 :key="date"
                 class="mb-10"
             >
@@ -134,7 +94,7 @@ await refreshTransactions();
                     v-for="transaction in transactionsOnDay"
                     :key="transaction.id"
                     :transaction="transaction"
-                    @deleted="refreshTransactions()"
+                    @deleted="refresh()"
                 />
             </div>
         </section>
@@ -142,6 +102,6 @@ await refreshTransactions();
             <USkeleton class="h-8 w-full mb-2" v-for="i in 4" :key="i" />
         </section>
 
-        <TransactionModal v-model="isOpen" @saved="refreshTransactions()" />
+        <TransactionModal v-model="isOpen" @saved="refresh()" />
     </div>
 </template>
