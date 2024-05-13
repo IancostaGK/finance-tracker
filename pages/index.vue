@@ -142,6 +142,6 @@ await refreshTransactions();
             <USkeleton class="h-8 w-full mb-2" v-for="i in 4" :key="i" />
         </section>
 
-        <TransactionModal v-model="isOpen" />
+        <TransactionModal v-model="isOpen" @saved="refreshTransactions()" />
     </div>
 </template>

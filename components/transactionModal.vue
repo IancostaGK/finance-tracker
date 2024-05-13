@@ -4,10 +4,8 @@ import type { Form } from '#ui/types';
 import { z } from 'zod';
 import { categories, types } from '~/constants';
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['saved']);
 const isOpen = defineModel<boolean>({ required: true });
-
-const form = ref<Form<typeof state.value> | null>(null);
 
 const initialState = {
     type: undefined,
@@ -17,9 +15,14 @@ const initialState = {
     category: undefined,
 };
 
+const isLoading = ref(false);
+const form = ref<Form<typeof state.value> | null>(null);
 const state = ref({
     ...initialState,
 });
+
+const supabase = useSupabaseClient();
+const toast = useToast();
 
 const defaultSchema = z.object({
     amount: z.number().positive('Amount must be positive'),
@@ -61,6 +64,33 @@ const resetForm = () => {
 
 const save = async () => {
     if (form.value?.errors.length) return;
+
+    isLoading.value = true;
+    try {
+        const { error } = await supabase
+            .from('transactions')
+            .upsert({ ...state.value } as any);
+
+        if (!error) {
+            toast.add({
+                title: 'Transaction saved',
+                icon: 'i-heroicons-check-circle',
+            });
+            isOpen.value = false;
+            emit('saved');
+            return;
+        }
+        throw error;
+    } catch (e: any) {
+        toast.add({
+            title: 'Transaction not saved',
+            description: e?.message as string,
+            icon: 'i-heroicons-exclamation-circle',
+            color: 'red',
+        });
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 watch(isOpen, (value) => {
@@ -73,7 +103,7 @@ watch(isOpen, (value) => {
         <UCard>
             <template #header> Add Transaction </template>
 
-            <UForm :state :schema ref="form" @submit.prevent="save">
+            <UForm :state :schema ref="form" @submit="save">
                 <UFormGroup
                     required
                     label="Transaction Type"
@@ -139,6 +169,7 @@ watch(isOpen, (value) => {
                     color="black"
                     variant="solid"
                     label="Save"
+                    :loading="isLoading"
                 />
             </UForm>
         </UCard>
