@@ -95,14 +95,9 @@ await refreshTransactions();
             :key="date"
             class="mb-10"
         >
-            <DailyTransactionSummary
+            <DailyTransactionsSummary
                 :date="date"
                 :transactions="transactionsOnDay"
-            />
-            <Transaction
-                v-for="transaction in transactionsOnDay"
-                :key="transaction.id"
-                :transaction="transaction"
             />
             <Transaction
                 v-for="transaction in transactionsOnDay"
