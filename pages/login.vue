@@ -40,7 +40,7 @@ const success = ref(false);
 const email = ref('');
 const pending = ref(false);
 
-const toast = useToast();
+const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 useRedirectIfAuthenticated();
 
@@ -52,11 +52,9 @@ const handleLogin = async () => {
       password: 'luck001u',
     });
     if (error) {
-      toast.add({
+      toastError({
         title: 'Error authenticating',
-        icon: 'i-heroicons-exlamation-circle',
         description: error.message,
-        color: 'red',
       });
     } else {
       success.value = true;
