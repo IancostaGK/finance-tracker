@@ -3,9 +3,13 @@ import type { UForm } from '#build/components';
 import type { Form } from '#ui/types';
 import { z } from 'zod';
 import { categories, types } from '~/constants';
+import type { TransactionRow } from '~/types/Transaction';
 
 const emit = defineEmits(['saved']);
 const isOpen = defineModel<boolean>({ required: true });
+const props = defineProps<{
+  transaction?: TransactionRow;
+}>();
 
 const initialState = {
   type: undefined,
@@ -17,9 +21,14 @@ const initialState = {
 
 const isLoading = ref(false);
 const form = ref<Form<typeof state.value> | null>(null);
-const state = ref({
-  ...initialState,
-});
+const state = ref(
+  props.transaction
+    ? {
+        ...props.transaction,
+        created_at: props.transaction.created_at.split('T')[0],
+      }
+    : { ...initialState }
+);
 
 const supabase = useSupabaseClient();
 const { toastError, toastSuccess } = useAppToast();
@@ -67,9 +76,10 @@ const save = async () => {
 
   isLoading.value = true;
   try {
-    const { error } = await supabase
-      .from('transactions')
-      .upsert({ ...state.value } as any);
+    const { error } = await supabase.from('transactions').upsert({
+      ...state.value,
+      id: props.transaction?.id,
+    } as any);
 
     if (!error) {
       toastSuccess({
@@ -90,6 +100,7 @@ const save = async () => {
   }
 };
 
+const isEditing = computed(() => !!props.transaction);
 watch(isOpen, (value) => {
   if (!value) resetForm();
 });
@@ -98,7 +109,9 @@ watch(isOpen, (value) => {
 <template>
   <UModal v-model="isOpen">
     <UCard>
-      <template #header> Add Transaction </template>
+      <template #header>
+        {{ isEditing ? 'Edit' : 'Add' }} Transaction
+      </template>
 
       <UForm :state :schema ref="form" @submit="save">
         <UFormGroup required label="Transaction Type" name="type" class="mb-4">

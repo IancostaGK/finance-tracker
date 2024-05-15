@@ -1,87 +1,84 @@
 import type { TransactionRow } from '~/types/Transaction';
 
 export const useFetchTransactions = (period: Ref<{ from: Date; to: Date }>) => {
-    const supabase = useSupabaseClient();
-    const transactions = ref<TransactionRow[]>([]);
-    const pending = ref(false);
+  const supabase = useSupabaseClient();
+  const transactions = ref<TransactionRow[]>([]);
+  const pending = ref(false);
 
-    const income = computed(() =>
-        transactions.value.filter((t) => t.type === 'Income')
-    );
-    const expense = computed(() =>
-        transactions.value.filter((t) => t.type === 'Expense')
-    );
+  const income = computed(() =>
+    transactions.value.filter((t) => t.type === 'Income')
+  );
+  const expense = computed(() =>
+    transactions.value.filter((t) => t.type === 'Expense')
+  );
 
-    const incomeCount = computed(() => income.value.length);
-    const expenseCount = computed(() => expense.value.length);
+  const incomeCount = computed(() => income.value.length);
+  const expenseCount = computed(() => expense.value.length);
 
-    const incomeTotal = computed(() =>
-        income.value.reduce((sum, transaction) => sum + transaction.amount, 0)
-    );
-    const expenseTotal = computed(() =>
-        expense.value.reduce((sum, transaction) => sum + transaction.amount, 0)
-    );
+  const incomeTotal = computed(() =>
+    income.value.reduce((sum, transaction) => sum + transaction.amount, 0)
+  );
+  const expenseTotal = computed(() =>
+    expense.value.reduce((sum, transaction) => sum + transaction.amount, 0)
+  );
 
-    const fetchTransactions = async (): Promise<TransactionRow[]> => {
-        pending.value = true;
-        try {
-            const { data } = await useAsyncData(
-                `transactions-${period.value.from.toDateString()}-${period.value.to.toDateString()}`,
-                async () => {
-                    const { data, error } = await supabase
-                        .from('transactions')
-                        .select()
-                        .gte('created_at', period.value.from.toISOString())
-                        .lte('created_at', period.value.to.toISOString())
-                        .order('created_at', { ascending: false });
+  const fetchTransactions = async (): Promise<TransactionRow[]> => {
+    pending.value = true;
+    try {
+      const { data } = await useAsyncData(
+        `transactions-${period.value.from.toDateString()}-${period.value.to.toDateString()}`,
+        async () => {
+          const { data, error } = await supabase
+            .from('transactions')
+            .select()
+            .gte('created_at', period.value.from.toISOString())
+            .lte('created_at', period.value.to.toISOString())
+            .order('created_at', { ascending: false });
 
-                    if (error) return [];
+          if (error) return [];
 
-                    return data;
-                }
-            );
-
-            return data.value || [];
-        } finally {
-            pending.value = false;
+          return data;
         }
-    };
+      );
 
-    const refresh = async () =>
-        (transactions.value = await fetchTransactions());
+      return data.value || [];
+    } finally {
+      pending.value = false;
+    }
+  };
 
-    const transactionsGroupedByDate = computed(() => {
-        let grouped: Record<string, TransactionRow[]> = {};
+  const refresh = async () => (transactions.value = await fetchTransactions());
 
-        for (const transaction of transactions.value) {
-            const date = new Date(transaction.created_at)
-                .toISOString()
-                .split('T')[0];
+  const transactionsGroupedByDate = computed(() => {
+    let grouped: Record<string, TransactionRow[]> = {};
 
-            if (!grouped[date]) grouped[date] = [];
+    for (const transaction of transactions.value) {
+      const date = transaction.created_at.split('T')[0];
 
-            grouped[date].push(transaction);
-        }
+      if (!grouped[date]) grouped[date] = [];
 
-        return grouped;
-    });
+      grouped[date].push(transaction);
+    }
 
-    watch(period, async () => await refresh(), { deep: true });
+    return grouped;
+  });
 
-    return {
-        transactions: {
-            all: transactions,
-            grouped: {
-                byDate: transactionsGroupedByDate,
-            },
-            income,
-            expense,
-            incomeTotal,
-            expenseTotal,
-            incomeCount,
-            expenseCount,
-        },
-        refresh,
-        pending,
-    };
+  watch(period, async () => await refresh(), { deep: true });
+
+  return {
+    transactions: {
+      all: transactions,
+      grouped: {
+        byDate: transactionsGroupedByDate,
+      },
+      income,
+      expense,
+      incomeTotal,
+      expenseTotal,
+      incomeCount,
+      expenseCount,
+    },
+    refresh,
+    pending,
+  };
 };

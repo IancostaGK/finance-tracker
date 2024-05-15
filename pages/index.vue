@@ -59,20 +59,6 @@ await refresh();
         :last-amount="prevExpenseTotal"
         :loading="pending"
       />
-      <Trend
-        color="green"
-        title="Investments"
-        :amount="4000"
-        :last-amount="3000"
-        :loading="pending"
-      />
-      <Trend
-        color="red"
-        title="Saving"
-        :amount="4000"
-        :last-amount="4100"
-        :loading="pending"
-      />
     </section>
 
     <section class="flex justify-between mb-10">
@@ -106,9 +92,10 @@ await refresh();
         />
         <Transaction
           v-for="transaction in transactionsOnDay"
-          :key="transaction.id"
+          :key="JSON.stringify(transaction)"
           :transaction="transaction"
           @deleted="refresh()"
+          @edited="refresh()"
         />
       </div>
     </section>

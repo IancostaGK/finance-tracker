@@ -4,9 +4,10 @@ import type { TransactionRow } from '~/types/Transaction';
 const props = defineProps<{
   transaction: TransactionRow;
 }>();
-const emit = defineEmits(['deleted']);
+const emit = defineEmits(['deleted', 'edited']);
 
 const isLoading = ref(false);
+const isOpen = ref(false);
 
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
@@ -34,7 +35,7 @@ const items = [
     {
       label: 'Edit',
       icon: 'i-heroicons-pencil-square-20-solid',
-      click: () => console.log('Edit'),
+      click: () => (isOpen.value = true),
     },
     {
       label: 'Delete',
@@ -80,6 +81,12 @@ const icon = computed(() =>
             :loading="isLoading"
           />
         </UDropdown>
+
+        <TransactionModal
+          v-model="isOpen"
+          :transaction="transaction"
+          @saved="emit('edited')"
+        />
       </div>
     </div>
   </div>
