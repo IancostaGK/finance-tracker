@@ -1,7 +1,60 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div>settings</div>
+  <UForm :state="state" :schema="schema" @submit.prevent="saveSettings">
+    <UFormGroup
+      label="Transaction View"
+      class="mb-4"
+      help="Choose how you would like to view transactions"
+    >
+      <USelect v-model="state.transactionView" />
+    </UFormGroup>
+
+    <UButton
+      type="submit"
+      color="black"
+      variant="solid"
+      label="Save"
+      :loading="pending"
+      :disabled="pending"
+    />
+  </UForm>
 </template>
 
-<style scoped></style>
+<script setup>
+import { z } from 'zod';
+
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
+const { toastSuccess, toastError } = useAppToast();
+
+const pending = ref(false);
+
+const state = ref({
+  transactionView: null,
+});
+
+const schema = z.object({
+  transactionView: null,
+});
+
+const saveSettings = async () => {
+  pending.value = true;
+
+  try {
+    const { error } = await supabase.auth.updateUser();
+
+    if (error) throw error;
+
+    toastSuccess({
+      title: 'Settings updated',
+    });
+  } catch (error) {
+    toastError({
+      title: 'Error updating settings',
+      description: error.message,
+    });
+  } finally {
+    pending.value = false;
+  }
+};
+</script>
